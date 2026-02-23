@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.expo.dev)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:shop.mictrack.com)",
+      "WebFetch(domain:www.trackits.com)",
+      "WebFetch(domain:www.mictrack.com)",
+      "Bash(ruby -v:*)",
+      "Bash(pod:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+Note: this is one 'feature' in an array of features.
+
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [
+        -122.416291701103,
+        37.777493843394
+      ],
+      [
+        -122.416317106137,
+        37.777410028361
+      ],
+      [
+        -122.417392074888,
+        37.776560951931
+      ],
+      [
+        -122.417501462483,
+        37.776540893509
+      ]
+    ]
+  },
+  "properties": {
+    "corridor": "Market St",
+    "week3": "1",
+    "week5": "1",
+    "cnnrightleft": "L",
+    "cnn": "8753101",
+    "week2": "1",
+    "holidays": "0",
+    "fullname": "Tuesday",
+    "blockside": "SouthEast",
+    "week1": "1",
+    "fromhour": "5",
+    "weekday": "Tues",
+    "tohour": "6",
+    "blocksweepid": "1640782",
+    "week4": "1",
+    "limits": "Larkin St  -  Polk St"
+  }
+}

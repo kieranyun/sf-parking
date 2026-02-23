@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(oci:*)",
+      "Bash(ssh:*)",
+      "Bash(source:*)",
+      "Bash(/Users/kieranyun/bin/oci:*)"
+    ]
+  }
+}

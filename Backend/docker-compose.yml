@@ -1,0 +1,59 @@
+services:
+
+  # ---- PostgreSQL + PostGIS ----
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: sf_parking_db
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    # No ports exposed — only reachable by other containers on this network
+
+  # ---- Express.js Backend ----
+  backend:
+    build: ./backend
+    container_name: sf_parking_backend
+    environment:
+      PORT: 3000
+      DB_HOST: postgres          # container name, not localhost
+      DB_PORT: 5432              # internal Postgres port (not the host-mapped 5433)
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DATASF_API_KEY: ${DATASF_API_KEY}
+      DATASF_API_TOKEN: ${DATASF_API_TOKEN}
+    ports:
+      - "3000:3000"              # exposed for phone app API calls
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---- Traccar GPS Server ----
+  traccar:
+    image: traccar/traccar:latest
+    container_name: sf_parking_traccar
+    volumes:
+      - ./traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - traccar_data:/opt/traccar/data
+      - traccar_logs:/opt/traccar/logs
+    ports:
+      - "5013:5013"              # MP91 GPS tracker TCP
+      - "8082:8082"              # Traccar web UI (remove this in production)
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  traccar_data:
+  traccar_logs:
