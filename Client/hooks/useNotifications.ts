@@ -1,3 +1,4 @@
+import { PushNotificationData } from '@/app/types';
 import { useParking } from '@/contexts/ParkingContext';
 import apiFetch from '@/services/api-client';
 import * as Device from 'expo-device';
@@ -44,14 +45,13 @@ export function useNotifications() {
     notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
       console.log('Notification received:', notification);
 
-      const data = notification.request.content.data;
+      const data = notification.request.content.data as PushNotificationData;
       if (data?.type === 'parked') {
         console.log('Data push: car parked at', data.latitude, data.longitude);
         setParked({
           latitude: data.latitude,
           longitude: data.longitude,
           restrictions: data.restrictions ?? [],
-          nextSweep: data.nextSweep ?? null,
         });
       } else if (data?.type === 'unparked') {
         console.log('Data push: car unparked');

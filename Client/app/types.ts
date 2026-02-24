@@ -8,6 +8,7 @@ export type {
   NextSweep,
   ParkedLocationResponse,
   RestrictionsApiResponse,
+  PushNotificationData,
 } from '@shared/types';
 
 // Client-only type (uses expo-maps Coordinates)

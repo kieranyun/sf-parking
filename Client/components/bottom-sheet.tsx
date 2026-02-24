@@ -46,7 +46,7 @@ export default function RestrictionSheet({ restriction, nextSweep, isOpened, onD
           <Text size={15} color="#555555">{activeWeeks}</Text>
           {nextSweep && (
             <Text size={15} color="#cc2200">
-              Next sweep: {new Date(nextSweep.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {nextSweep.fromHour.toString()}:00
+              {`Next sweep: ${new Date(nextSweep.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at ${nextSweep.fromHour}:00`}
             </Text>
           )}
         </BottomSheet>

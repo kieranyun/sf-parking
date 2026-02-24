@@ -54,3 +54,15 @@ export interface RestrictionsApiResponse {
   longitude: number;
   restrictions: ParkingRestriction[];
 }
+
+// Push notification data payloads sent from backend via Expo
+export type PushNotificationData =
+  | {
+      type: 'parked';
+      latitude: number;
+      longitude: number;
+      restrictions: ParkingRestriction[];
+    }
+  | {
+      type: 'unparked';
+    };
