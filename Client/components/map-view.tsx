@@ -23,6 +23,7 @@ export default function MapComponent() {
   const { isParked, parkedLocation, restrictions: parkedRestrictions } = useParking();
 
   // When user taps the map, fetch restrictions for that point manually
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { restrictions: manualRestrictions, isLoading, error, noResults } = useRestrictionsForPoint(
     manualCoords?.latitude ?? 0,
     manualCoords?.longitude ?? 0,
