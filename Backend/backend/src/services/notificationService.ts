@@ -60,7 +60,7 @@ export function scheduleSweepWarning(
 
   const now = Date.now();
   const fireAt = sweepTime.getTime() - leadTimeMs;
-  const delayMs = fireAt - now;
+  const delayMs = fireAt - now; //time until street sweeping
 
   if (delayMs <= 0) {
     // Sweep is less than leadTime away — send immediately

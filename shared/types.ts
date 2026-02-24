@@ -1,6 +1,9 @@
 /**
- * Shared types — mirrored from SF-Parking-App/shared/types.ts.
- * IMPORTANT: If you update types here, sync them back to shared/types.ts.
+ * Shared types between Client and Backend.
+ *
+ * IMPORTANT: This file is the source of truth.
+ * The backend mirrors these in Backend/backend/src/types/index.ts.
+ * If you update types here, make sure to sync the backend types manually.
  */
 
 export interface ParkingRestriction {
@@ -50,48 +53,4 @@ export interface RestrictionsApiResponse {
   latitude: number;
   longitude: number;
   restrictions: ParkingRestriction[];
-}
-
-// Backend-only types
-
-export interface CheckParkingRequest {
-  latitude: number;
-  longitude: number;
-}
-
-export interface CheckParkingResponse {
-  latitude: number;
-  longitude: number;
-  restrictions: ParkingRestriction[];
-  parkingAllowed: boolean;
-  checkedAt: string;
-  dataLastUpdated?: string;
-}
-
-export interface GeoJSONFeature {
-  type: 'Feature';
-  geometry: {
-    type: 'LineString';
-    coordinates: number[][];
-  };
-  properties: FeatureProperties;
-}
-
-export interface FeatureProperties {
-  corridor: string;
-  week3: string;
-  week5: string;
-  cnnrightleft: string;
-  cnn: string;
-  week2: string;
-  holidays: string;
-  fullname: string;
-  blockside: string;
-  week1: string;
-  fromhour: string;
-  weekday: string;
-  tohour: string;
-  blocksweepid: string;
-  week4: string;
-  limits: string;
 }

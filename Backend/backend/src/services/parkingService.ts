@@ -1,6 +1,6 @@
 import { pool } from '../db/connection';
 import { QUERIES } from '../db/queries';
-import { ParkingRestriction, CheckParkingRequest, SweepingSchedule } from '../types';
+import { ParkingRestriction, CheckParkingRequest, SweepingSchedule, NextSweep } from '../types';
 import { addWeeks, startOfMonth, nextDay, isAfter, isBefore, Day } from 'date-fns';
 
 
@@ -16,25 +16,33 @@ export async function findRestrictionsNearPoint(CheckParkingRequest: CheckParkin
     console.log(qResult.rows);
 
     const result: ParkingRestriction[] = qResult.rows.map(row => {
+      const sweepSchedule: SweepingSchedule = {
+        week1: row.week1,
+        week2: row.week2,
+        week3: row.week3,
+        week4: row.week4,
+        week5: row.week5,
+        fromHour: row.fromhour,
+        toHour: row.tohour,
+        weekday: row.weekday,
+      };
+      const nextSweepDate = getNextSweeping(sweepSchedule);
       return {
         parkingSpot: {
           street: row.corridor,
-          crossStreets: row.limits, //cross streets
-          blockside: row.blockside, //"East", "West", etc..
+          crossStreets: row.limits,
+          blockside: row.blockside,
           cnn: row.cnn,
-          sidewalkLine: JSON.parse(row.curbline)
+          sidewalkLine: JSON.parse(row.curbline),
         },
-        sweepSchedule: {
-          week1: row.week1,
-          week2: row.week2,
-          week3: row.week3,
-          week4: row.week4,
-          week5: row.week5,
+        sweepSchedule,
+        nextSweep: nextSweepDate ? {
+          date: nextSweepDate.toISOString(),
+          street: row.corridor,
+          blockside: row.blockside,
           fromHour: row.fromhour,
-          toHour: row.tohour,
-          weekday: row.weekday
-        }
-      }
+        } : null,
+      };
     })
     return result;
   } catch (error) {

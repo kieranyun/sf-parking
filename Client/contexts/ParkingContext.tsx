@@ -1,4 +1,4 @@
-import { NextSweep, ParkingRestriction, ParkedLocationResponse } from '@/app/types';
+import { ParkingRestriction, ParkedLocationResponse } from '@/app/types';
 import apiFetch from '@/services/api-client';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
@@ -9,7 +9,6 @@ interface ParkingState {
   isParked: boolean;
   parkedLocation: { latitude: number; longitude: number } | null;
   restrictions: ParkingRestriction[] | null;
-  nextSweep: NextSweep | null;
   isLoading: boolean;
 }
 
@@ -18,7 +17,6 @@ interface ParkingContextValue extends ParkingState {
     latitude: number;
     longitude: number;
     restrictions: ParkingRestriction[];
-    nextSweep: NextSweep | null;
   }) => void;
   clearParked: () => void;
   refreshParkedStatus: () => Promise<void>;
@@ -31,7 +29,6 @@ export function ParkingProvider({ children }: { children: React.ReactNode }) {
     isParked: false,
     parkedLocation: null,
     restrictions: null,
-    nextSweep: null,
     isLoading: true,
   });
 
@@ -39,13 +36,11 @@ export function ParkingProvider({ children }: { children: React.ReactNode }) {
     latitude: number;
     longitude: number;
     restrictions: ParkingRestriction[];
-    nextSweep: NextSweep | null;
   }) => {
     setState({
       isParked: true,
       parkedLocation: { latitude: data.latitude, longitude: data.longitude },
       restrictions: data.restrictions,
-      nextSweep: data.nextSweep,
       isLoading: false,
     });
   }, []);
@@ -55,7 +50,6 @@ export function ParkingProvider({ children }: { children: React.ReactNode }) {
       isParked: false,
       parkedLocation: null,
       restrictions: null,
-      nextSweep: null,
       isLoading: false,
     });
   }, []);
@@ -71,11 +65,10 @@ export function ParkingProvider({ children }: { children: React.ReactNode }) {
           isParked: true,
           parkedLocation: { latitude: data.latitude, longitude: data.longitude },
           restrictions: data.restrictions ?? null,
-          nextSweep: data.nextSweep ?? null,
           isLoading: false,
         });
       } else {
-        setState(prev => ({ ...prev, isParked: false, parkedLocation: null, restrictions: null, nextSweep: null, isLoading: false }));
+        setState(prev => ({ ...prev, isParked: false, parkedLocation: null, restrictions: null, isLoading: false }));
       }
     } catch (error: any) {
       // 404 means device not tracked yet — that's fine
@@ -92,6 +85,11 @@ export function ParkingProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshParkedStatus();
   }, [refreshParkedStatus]);
+
+  // Debug: log state changes
+  useEffect(() => {
+    console.log('[ParkingContext]', JSON.stringify(state, null, 2));
+  }, [state]);
 
   return (
     <ParkingContext.Provider value={{ ...state, setParked, clearParked, refreshParkedStatus }}>

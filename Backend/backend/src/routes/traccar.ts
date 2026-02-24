@@ -2,8 +2,8 @@ import { Router } from 'express';
 import { pool } from '../db/connection';
 import { QUERIES } from '../db/queries';
 import { sendDataPushToDevice, scheduleSweepWarning, cancelSweepWarning } from '../services/notificationService';
-import { findRestrictionsNearPoint, getNextSweeping } from '../services/parkingService';
-import { ParkingRestriction } from '../types';
+import { findRestrictionsNearPoint } from '../services/parkingService';
+import { NextSweep } from '../types';
 
 export const traccarRouter = Router();
 
@@ -37,14 +37,14 @@ traccarRouter.post('/traccar-webhook', async (req, res) => {
         await pool.query(QUERIES.upsertParkedVehicle, [deviceId, latitude, longitude, deviceEventTime]);
         console.log(`Device ${deviceId} parked at ${latitude}, ${longitude}`);
 
-        // 2. Query street sweeping restrictions for the parked location
+        // 2. Query street sweeping restrictions (nextSweep is now included on each restriction)
         const restrictions = await findRestrictionsNearPoint({ latitude, longitude });
         console.log(`Found ${restrictions.length} restrictions near parked location`);
 
-        // 3. Calculate the soonest upcoming sweep
-        const nextSweep = findSoonestSweep(restrictions);
-        if (nextSweep) {
-          console.log(`Next sweep: ${nextSweep.street} (${nextSweep.blockside}) at ${nextSweep.date.toISOString()}`);
+        // 3. Find soonest sweep across all restrictions for notification scheduling
+        const soonest = findSoonestSweep(restrictions);
+        if (soonest) {
+          console.log(`Next sweep: ${soonest.street} (${soonest.blockside}) at ${soonest.date}`);
         } else {
           console.log('No upcoming sweeps found for this location');
         }
@@ -55,20 +55,14 @@ traccarRouter.post('/traccar-webhook', async (req, res) => {
           latitude,
           longitude,
           restrictions,
-          nextSweep: nextSweep ? {
-            date: nextSweep.date.toISOString(),
-            street: nextSweep.street,
-            blockside: nextSweep.blockside,
-            fromHour: nextSweep.fromHour,
-          } : null,
         });
 
         // 5. Schedule a sweep warning if there's an upcoming sweep
-        if (nextSweep) {
-          scheduleSweepWarning(deviceId, nextSweep.date, {
-            street: nextSweep.street,
-            blockside: nextSweep.blockside,
-            fromHour: nextSweep.fromHour,
+        if (soonest) {
+          scheduleSweepWarning(deviceId, new Date(soonest.date), {
+            street: soonest.street,
+            blockside: soonest.blockside,
+            fromHour: soonest.fromHour,
           });
         }
         break;
@@ -122,13 +116,11 @@ traccarRouter.get('/parked-location/:deviceId', async (req, res) => {
       });
     }
 
-    // If parked, also include restrictions and next sweep
+    // If parked, include restrictions (each with their own nextSweep)
     const restrictions = await findRestrictionsNearPoint({
       latitude: vehicle.latitude,
       longitude: vehicle.longitude,
     });
-
-    const nextSweep = findSoonestSweep(restrictions);
 
     res.json({
       deviceId: vehicle.device_id,
@@ -137,12 +129,6 @@ traccarRouter.get('/parked-location/:deviceId', async (req, res) => {
       longitude: vehicle.longitude,
       parkedAt: vehicle.parked_at,
       restrictions,
-      nextSweep: nextSweep ? {
-        date: nextSweep.date.toISOString(),
-        street: nextSweep.street,
-        blockside: nextSweep.blockside,
-        fromHour: nextSweep.fromHour,
-      } : null,
     });
   } catch (error) {
     console.error('Parked location error:', error);
@@ -151,27 +137,13 @@ traccarRouter.get('/parked-location/:deviceId', async (req, res) => {
 });
 
 /**
- * Given a list of restrictions, finds the soonest upcoming sweep across all of them.
+ * Finds the soonest upcoming sweep across all restrictions, using the
+ * nextSweep already calculated on each restriction by parkingService.
  */
-function findSoonestSweep(restrictions: ParkingRestriction[]): {
-  date: Date;
-  street: string;
-  blockside: string;
-  fromHour: number;
-} | null {
-  let soonest: { date: Date; street: string; blockside: string; fromHour: number } | null = null;
-
-  for (const r of restrictions) {
-    const nextDate = getNextSweeping(r.sweepSchedule);
-    if (nextDate && (!soonest || nextDate < soonest.date)) {
-      soonest = {
-        date: nextDate,
-        street: r.parkingSpot.street,
-        blockside: r.parkingSpot.blockside,
-        fromHour: r.sweepSchedule.fromHour,
-      };
-    }
-  }
-
-  return soonest;
+function findSoonestSweep(restrictions: { nextSweep?: NextSweep | null; parkingSpot: { street: string; blockside: string }; sweepSchedule: { fromHour: number } }[]): NextSweep | null {
+  return restrictions.reduce<NextSweep | null>((soonest, r) => {
+    if (!r.nextSweep) return soonest;
+    if (!soonest) return r.nextSweep;
+    return new Date(r.nextSweep.date) < new Date(soonest.date) ? r.nextSweep : soonest;
+  }, null);
 }

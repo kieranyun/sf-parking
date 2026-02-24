@@ -20,7 +20,7 @@ export default function MapComponent() {
   const ignoreNextMapClickRef = useRef(false);
 
   // Parking context — auto-populated when the car parks via push notification or on app startup
-  const { isParked, parkedLocation, restrictions: parkedRestrictions, nextSweep } = useParking();
+  const { isParked, parkedLocation, restrictions: parkedRestrictions } = useParking();
 
   // When user taps the map, fetch restrictions for that point manually
   const { restrictions: manualRestrictions, isLoading, error, noResults } = useRestrictionsForPoint(
@@ -51,6 +51,7 @@ export default function MapComponent() {
         coordinates: parkedLocation,
         title: 'Parked Car',
         tintColor: 'green',
+        id: 'ParkedCar'
       });
     }
 
@@ -60,6 +61,7 @@ export default function MapComponent() {
         coordinates: manualCoords,
         title: 'Checked Location',
         tintColor: 'blue',
+        id: 'ManualCoords'
       });
     }
 
@@ -115,6 +117,17 @@ export default function MapComponent() {
     setSelectedRestriction(findRestrictionByLineId(line.id) ?? null);
   };
 
+  const handleMarkerClick = (marker: { id?: string }): void => {
+    if (marker.id === 'ParkedCar' && parkedRestrictions && parkedRestrictions.length > 0) {
+      ignoreNextMapClickRef.current = true;
+      setManualCoords(null);
+      const closest = parkedRestrictions[0];
+      const lineId = `restriction-${closest.parkingSpot.cnn}-${closest.parkingSpot.blockside}`;
+      setSelectedLineId(lineId);
+      setSelectedRestriction(closest);
+    }
+  }
+
   return (
     <View>
       <AppleMaps.View
@@ -124,13 +137,14 @@ export default function MapComponent() {
         polylines={restrictionLines}
         onMapClick={handleMapClick}
         onPolylineClick={handlePolylineClick}
+        onMarkerClick={handleMarkerClick}
       />
 
-      {/* Next sweep warning banner */}
-      {isParked && nextSweep && !manualCoords && (
+      {/* Next sweep warning banner — uses nextSweep from the closest restriction */}
+      {isParked && parkedRestrictions?.[0]?.nextSweep && !manualCoords && (
         <View style={styles.sweepBanner}>
           <Text style={styles.sweepBannerText}>
-            Next sweep: {nextSweep.street} ({nextSweep.blockside}) — {new Date(nextSweep.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {nextSweep.fromHour}:00
+            Next sweep: {parkedRestrictions[0].nextSweep.street} ({parkedRestrictions[0].nextSweep.blockside}) — {new Date(parkedRestrictions[0].nextSweep.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {parkedRestrictions[0].nextSweep.fromHour}:00
           </Text>
         </View>
       )}
@@ -161,6 +175,7 @@ export default function MapComponent() {
       )}
       <RestrictionSheet
         restriction={selectedRestriction}
+        nextSweep={!manualCoords ? (selectedRestriction?.nextSweep ?? null) : null}
         isOpened={selectedRestriction !== null}
         onDismiss={() => {
           setSelectedRestriction(null);

@@ -1,18 +1,16 @@
 // components/bottom-sheet.tsx
 
-import { ParkingRestriction } from '@/app/types';
+import { NextSweep, ParkingRestriction } from '@/app/types';
 import { BottomSheet, Host, Text, VStack } from '@expo/ui/swift-ui';
-
-
-
 
 interface RestrictionSheetProps {
   restriction: ParkingRestriction | null;
+  nextSweep?: NextSweep | null;
   isOpened: boolean;
   onDismiss: () => void;
 }
 
-export default function RestrictionSheet({ restriction, isOpened, onDismiss }: RestrictionSheetProps) {
+export default function RestrictionSheet({ restriction, nextSweep, isOpened, onDismiss }: RestrictionSheetProps) {
   if (!restriction) return null;
 
   const { parkingSpot, sweepSchedule } = restriction;
@@ -46,6 +44,11 @@ export default function RestrictionSheet({ restriction, isOpened, onDismiss }: R
           <Text weight="bold" size={18}>{streetName}</Text>
           <Text size={15} color="#555555">{schedule}</Text>
           <Text size={15} color="#555555">{activeWeeks}</Text>
+          {nextSweep && (
+            <Text size={15} color="#cc2200">
+              Next sweep: {new Date(nextSweep.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} at {nextSweep.fromHour.toString()}:00
+            </Text>
+          )}
         </BottomSheet>
       </VStack>
     </Host>
