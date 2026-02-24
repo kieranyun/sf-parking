@@ -3,6 +3,7 @@ services:
   # ---- PostgreSQL + PostGIS ----
   postgres:
     image: postgis/postgis:16-3.4
+    platform: linux/arm64/v8
     container_name: sf_parking_db
     environment:
       POSTGRES_DB: ${DB_NAME}
