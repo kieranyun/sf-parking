@@ -1,5 +1,5 @@
 // api/client.ts
-const API_BASE_URL = 'http:192.168.7.87:3000' // or ngrok / local tunnel
+const API_BASE_URL = 'http:192.168.7.246:3000' // or ngrok / local tunnel
 
 export type ApiError = {
   message: string;
