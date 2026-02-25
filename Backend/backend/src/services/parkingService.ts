@@ -56,8 +56,8 @@ export async function findRestrictionsNearPoint(CheckParkingRequest: CheckParkin
 export function getNextSweeping(schedule: SweepingSchedule): Date | null {
   const now = new Date();
   const weekdayMap: Record<string, number> = {
-    'Sunday': 0, 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3,
-    'Thursday': 4, 'Friday': 5, 'Saturday': 6
+    'Sun': 0, 'Mon': 1, 'Tues': 2, 'Wed': 3,
+    'Thu': 4, 'Fri': 5, 'Sat': 6
   };
 
   const weekdayNum = weekdayMap[schedule.weekday];
