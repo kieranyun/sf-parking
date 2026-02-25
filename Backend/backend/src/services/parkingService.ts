@@ -1,7 +1,7 @@
 import { pool } from '../db/connection';
 import { QUERIES } from '../db/queries';
 import { ParkingRestriction, CheckParkingRequest, SweepingSchedule, NextSweep } from '../types';
-import { addWeeks, startOfMonth, nextDay, isAfter, isBefore, Day } from 'date-fns';
+import { addWeeks, startOfMonth, nextDay, isAfter, Day } from 'date-fns';
 
 
 const GPS_ACCURACY_RADIUS_METERS = 10.00;
@@ -115,7 +115,11 @@ function getNthWeekdayOfMonth(
   n: number
 ): Date {
   const firstDay = startOfMonth(new Date(year, month, 1));
-  const firstWeekday = nextDay(firstDay, weekday as Day);
+  // If the first day of the month is already the target weekday, use it directly.
+  // nextDay() always skips to the *next* occurrence, so we'd be off by a week.
+  const firstWeekday = firstDay.getDay() === weekday
+    ? firstDay
+    : nextDay(firstDay, weekday as Day);
   return addWeeks(firstWeekday, n - 1);
 }
 
